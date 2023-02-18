@@ -1,4 +1,4 @@
-from flask import Flask, Response, request, jsonify
+from flask import Flask, request
 import sqlite3
 from database.queries import *
 from sqlite3 import Error
@@ -36,6 +36,7 @@ def get_all_hackers():
         rows = cur.fetchall()
         for hacker in rows:
             id = hacker[0]
+            # retrieve hackers skills given id
             cur.execute(GET_SINGLE_HACKER_SKILLS, (id,))
             hacker_skills = cur.fetchall()
             all_hackers.append(complete_hacker_profile(hacker, hacker_skills))
@@ -44,51 +45,51 @@ def get_all_hackers():
         return all_hackers
 
 
-@app.route('/users/<user_id>', methods=["GET"])
-def get_single_user(user_id):
+@app.route('/users/<hacker_id>', methods=["GET"])
+def get_single_user(hacker_id):
     with sqlite3.connect("database/hackers.db") as conn:
         cur = conn.cursor()
-        cur.execute(GET_SINGLE_HACKER, (user_id,))
+        cur.execute(GET_SINGLE_HACKER, (hacker_id,))
         
         hacker = cur.fetchall()[0]
 
-        cur.execute(GET_SINGLE_HACKER_SKILLS, (user_id,))
+        cur.execute(GET_SINGLE_HACKER_SKILLS, (hacker_id,))
         skills = cur.fetchall()
         cur.close()
 
         return complete_hacker_profile(hacker, skills)
     
 
-def update_user_skills(user_id, skills):
-    print(skills)
+def update_user_skills(hacker_id, skills):
     with sqlite3.connect("database/hackers.db") as conn:
         for skill in skills:
             # check if skill already exists
             cur = conn.cursor()
-            cur.execute("SELECT rating FROM skills WHERE skill=(?) AND hacker_id=(?)", (skill, user_id,))
+            cur.execute("SELECT rating FROM skills WHERE skill=(?) AND hacker_id=(?)", (skill, hacker_id,))
             rsp = cur.fetchall()
             if len(rsp) == 0:
                 # skill does not exist
-                skillsData = (skill, skills[skill], user_id)
+                skillsData = (skill, skills[skill], hacker_id)
                 cur.execute(INSERT_SKILLS_INFO, skillsData)
             
             else:
                 # skill exists, update entry
                 UPDATE_USER_SKILL = """UPDATE skills SET rating = (?) WHERE hacker_id=(?) AND skill=(?)"""
-                cur.execute(UPDATE_USER_SKILL, (skills[skill], user_id, skill,))
+                cur.execute(UPDATE_USER_SKILL, (skills[skill], hacker_id, skill,))
 
         conn.commit()
 
-@app.route('/users/<user_id>', methods=["POST", "PUT"])
-def update_user(user_id):
+@app.route('/users/<hacker_id>', methods=["POST", "PUT"])
+def update_user(hacker_id):
     with sqlite3.connect("database/hackers.db") as conn:
         UPDATE_HACKER_PROFILE = """UPDATE hackers SET """
         toModify = request.get_json()
         colsToModify = list(toModify.keys())
         if ("skills" in colsToModify):
             colsToModify.remove("skills")
-            update_user_skills(user_id, toModify["skills"])
+            update_user_skills(hacker_id, toModify["skills"])
 
+        # update query depending on which fields were passed in request body
         for i in range (len(colsToModify)):
             UPDATE_HACKER_PROFILE = UPDATE_HACKER_PROFILE + colsToModify[i] + "=?"
             if (i != len(colsToModify) - 1):
@@ -100,13 +101,13 @@ def update_user(user_id):
 
         for k in colsToModify:
             updatedValues.append(toModify[k])
-        updatedValues.append(user_id)
+        updatedValues.append(hacker_id)
 
         cur = conn.cursor()
         cur.execute(UPDATE_HACKER_PROFILE, updatedValues)
         conn.commit()
         
-        return get_single_user(user_id)
+        return get_single_user(hacker_id)
 
 
 @app.route('/skills/', methods=["GET"])
