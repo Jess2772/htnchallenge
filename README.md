@@ -47,7 +47,7 @@ Response is a list of hacker objects, in the following format:
 ```
 GET http://localhost:5000/users/<user_id>
 ```
-Given a ```userid```, retrieve all their information. 
+Given a ```user_id```, retrieve all their information. First hacker's ```user_id`` is ```1```, then ```2```, up to the number of hackers in the database. 
 Response is a hacker object, in the following format:
 ``` json
   {
