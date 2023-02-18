@@ -45,9 +45,9 @@ Response is a list of hacker objects, in the following format:
 
 **User Information Endpoint**
 ```
-GET http://localhost:5000/users/<user_id>
+GET http://localhost:5000/users/<hacker_id>
 ```
-Given a ```user_id```, retrieve all their information. First hacker's ```user_id``` is ```1```, then ```2```, up to the number of hackers in the database. 
+Given a ```hacker_id```, retrieve all their information. First hacker's ```hacker_id``` is ```1```, then ```2```, up to the number of hackers in the database. 
 Response is a hacker object, in the following format:
 ``` json
   {
@@ -66,7 +66,7 @@ Response is a hacker object, in the following format:
 
 **Updating User Data Endpoint**
 ```
-PUT http://localhost:5000/users/<user_id>
+PUT http://localhost:5000/users/<hacker_id>
 ```
 Given a ```userid``` and a json request body, update hacker profile with the values in the request body. Any new skills will be added to the hackers profile.
 Sample Request:
